@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bruzzone & Avero — Consultorio</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f5f4f0;color:#1a1a18;min-height:100vh}
+.app{display:flex;height:100vh;max-height:100vh;overflow:hidden}
+.sidebar{width:220px;border-right:1px solid #dddbd2;padding:1rem 0;display:flex;flex-direction:column;gap:4px;background:#f0efe9;flex-shrink:0}
+.sidebar-header{padding:0 1rem 1rem;border-bottom:1px solid #dddbd2;margin-bottom:4px}
+.sidebar-title{font-size:13px;font-weight:700;color:#1a1a18;line-height:1.2}
+.sidebar-sub{font-size:11px;color:#888780;margin-top:2px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 1rem;cursor:pointer;font-size:13px;color:#5f5e5a;transition:background 0.15s;user-select:none}
+.nav-item:hover{background:#e8e6df;color:#1a1a18}
+.nav-item.active{background:#fff;color:#1a1a18;font-weight:600;border-left:2px solid #3B6D11}
+.nav-icon{width:16px;height:16px;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#fff}
+.topbar{padding:1rem 1.5rem;border-bottom:1px solid #dddbd2;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.page-title{font-size:16px;font-weight:700;color:#1a1a18}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit;border-radius:8px;border:1px solid #dddbd2;background:#fff;color:#1a1a18;transition:background 0.15s}
+.btn:hover{background:#f0efe9}
+.btn-primary{background:#3B6D11;color:#fff;border-color:#3B6D11}
+.btn-primary:hover{background:#27500A}
+.btn-danger{background:#FCEBEB;color:#A32D2D;border-color:#f09595}
+.btn-danger:hover{background:#f7c1c1}
+.btn-sm{padding:4px 10px;font-size:12px}
+.content{flex:1;overflow-y:auto;padding:1.5rem}
+.section{display:none}.section.active{display:block}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#f5f4f0;border-radius:8px;padding:12px 14px}
+.metric-label{font-size:11px;color:#888780;margin-bottom:4px}
+.metric-value{font-size:22px;font-weight:700;color:#1a1a18}
+.metric-sub{font-size:11px;color:#888780;margin-top:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.card{background:#fff;border:1px solid #dddbd2;border-radius:12px;padding:1rem}
+.card-title{font-size:13px;font-weight:700;color:#1a1a18;margin-bottom:12px}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
+.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}
+.badge-blue{background:#E6F1FB;color:#185FA5}
+.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-gray{background:#f0efe9;color:#5f5e5a}
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:8px 12px;font-size:11px;font-weight:700;color:#888780;border-bottom:1px solid #dddbd2;white-space:nowrap}
+.data-table td{padding:10px 12px;border-bottom:1px solid #f0ede6;color:#1a1a18;vertical-align:middle}
+.data-table tbody tr:hover td{background:#f8f7f4}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;align-items:center;flex-wrap:wrap}
+.search-input{flex:1;min-width:180px;padding:7px 12px;border:1px solid #dddbd2;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a18;background:#fff}
+.search-input:focus{outline:none;border-color:#3B6D11}
+.filter-btn{padding:5px 14px;border-radius:10px;font-size:12px;cursor:pointer;border:1px solid #dddbd2;background:#f5f4f0;color:#888780;font-family:inherit;font-weight:600}
+.filter-btn:hover{background:#e8e6df}
+.filter-btn.active{background:#EAF3DE;color:#3B6D11;border-color:#97C459}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem}
+.modal{background:#fff;border-radius:14px;padding:1.5rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.15)}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:1.25rem;color:#1a1a18}
+.form-group{margin-bottom:1rem}
+.form-label{font-size:12px;font-weight:600;color:#5f5e5a;margin-bottom:4px;display:block}
+.form-control{width:100%;padding:8px 12px;border:1px solid #dddbd2;border-radius:8px;font-size:13px;font-family:inherit;color:#1a1a18;background:#fff}
+.form-control:focus{outline:none;border-color:#3B6D11}
+textarea.form-control{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #dddbd2}
+.cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+.cal-nav button{background:none;border:1px solid #dddbd2;border-radius:8px;padding:5px 12px;cursor:pointer;font-size:14px;color:#1a1a18;font-family:inherit}
+.cal-nav button:hover{background:#f0efe9}
+.cal-month-label{font-size:15px;font-weight:700;color:#1a1a18}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-label{text-align:center;font-size:11px;color:#888780;padding:4px 0;font-weight:700}
+.cal-day{min-height:80px;border:1px solid #dddbd2;border-radius:6px;padding:6px;cursor:pointer;transition:background 0.1s}
+.cal-day:hover{background:#f5f4f0}
+.cal-day.other-month{opacity:0.4}
+.cal-day.today{border-color:#3B6D11;border-width:2px}
+.cal-day.today .cal-num{color:#3B6D11;font-weight:700}
+.cal-num{font-size:12px;color:#1a1a18;margin-bottom:3px}
+.cal-event{font-size:10px;background:#EAF3DE;color:#3B6D11;border-radius:3px;padding:1px 5px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
+.cal-event:hover{background:#C0DD97}
+.cal-event.psi2{background:#E6F1FB;color:#185FA5}
+.cal-event.psi2:hover{background:#b5d4f4}
+.detail-tabs{display:flex;gap:4px;margin-bottom:1.25rem;border-bottom:1px solid #dddbd2}
+.detail-tab{padding:8px 16px;font-size:13px;cursor:pointer;color:#888780;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;background:none;border-top:none;border-left:none;border-right:none}
+.detail-tab.active{color:#3B6D11;border-bottom-color:#3B6D11;font-weight:600}
+.detail-tab-content{display:none}
+.detail-tab-content.active{display:block}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info-item label{font-size:11px;font-weight:600;color:#888780;display:block;margin-bottom:2px}
+.info-item p{font-size:13px;color:#1a1a18}
+.historial-entry{background:#f8f7f4;border-radius:8px;padding:12px;margin-bottom:10px;border-left:3px solid #3B6D11}
+.historial-date{font-size:11px;color:#888780;margin-bottom:4px}
+.historial-text{font-size:13px;color:#1a1a18;line-height:1.5}
+.empty-state{text-align:center;padding:3rem 1rem;color:#888780}
+.link-box{background:#f5f4f0;border:1px solid #dddbd2;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-top:8px}
+.link-url{font-size:12px;color:#3B6D11;flex:1;word-break:break-all;font-family:monospace}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a18;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none}
+.toast.show{opacity:1}
+.amount-pos{color:#3B6D11;font-weight:700}
+.amount-neg{color:#A32D2D;font-weight:700}
+.booking-wrap{max-width:480px;margin:0 auto;padding:2rem 1rem}
+.time-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.time-slot{padding:9px;border:1px solid #dddbd2;border-radius:8px;text-align:center;font-size:13px;cursor:pointer;background:#fff;font-family:inherit}
+.time-slot:hover{border-color:#3B6D11;background:#EAF3DE;color:#3B6D11}
+.time-slot.selected{border-color:#3B6D11;background:#EAF3DE;color:#3B6D11;font-weight:700}
+.loading{display:flex;align-items:center;justify-content:center;padding:3rem;color:#888780;font-size:14px;gap:10px}
+.spinner{width:20px;height:20px;border:2px solid #dddbd2;border-top-color:#3B6D11;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="closeModalBg(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+<div id="booking-page" style="display:none;min-height:100vh;background:#f5f4f0">
+  <div class="booking-wrap" id="booking-inner"></div>
+</div>
+<div class="app" id="main-app">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="width:40px;height:40px;border-radius:10px;background:#3B6D11;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:11px;font-weight:700;color:#fff;line-height:1.2">MB</span>
+          <span style="font-size:8px;font-weight:600;color:#c0dd97;line-height:1.2">NA</span>
+        </div>
+        <div>
+          <div class="sidebar-title">Bruzzone & Avero</div>
+          <div class="sidebar-sub">Consultorio de psicología</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-item active" onclick="showSection('dashboard',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.8"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor" opacity="0.4"/></svg>
+      Inicio
+    </div>
+    <div class="nav-item" onclick="showSection('patients',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" fill="currentColor" opacity="0.8"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/></svg>
+      Pacientes
+    </div>
+    <div class="nav-item" onclick="showSection('calendar',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1.5" y="3" width="13" height="11" rx="1.5" stroke="currentColor" stroke-width="1.2" opacity="0.8"/><path d="M1.5 7h13" stroke="currentColor" stroke-width="1.2" opacity="0.5"/><path d="M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/></svg>
+      Calendario
+    </div>
+    <div class="nav-item" onclick="showSection('payments',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="1" y="3.5" width="14" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2" opacity="0.8"/><path d="M1 7h14" stroke="currentColor" stroke-width="1.5" opacity="0.5"/><circle cx="4.5" cy="10" r="1" fill="currentColor" opacity="0.7"/></svg>
+      Pagos
+    </div>
+    <div class="nav-item" onclick="showBookingLink()">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2" opacity="0.8"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.8"/></svg>
+      Link de turnos
+    </div>
+    <div class="nav-item" onclick="showSection('config',this)">
+      <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2" opacity="0.8"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/></svg>
+      Configuración
+    </div>
+    <div style="flex:1"></div>
+    <div style="padding:0.75rem 1rem;border-top:1px solid #dddbd2">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">
+        <div class="avatar" style="width:26px;height:26px;background:#EAF3DE;color:#3B6D11;font-size:9px">MB</div>
+        <div style="font-size:11px;font-weight:600;color:#1a1a18">Psic. Mariana Bruzzone</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <div class="avatar" style="width:26px;height:26px;background:#C0DD97;color:#27500A;font-size:9px">NA</div>
+        <div style="font-size:11px;font-weight:600;color:#1a1a18">Lic. Natalia Avero</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:8px">
+        <div style="width:8px;height:8px;border-radius:50%;background:#3B6D11" id="sync-dot"></div>
+        <div style="font-size:10px;color:#888780" id="sync-status">Conectando...</div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div id="dashboard" class="section active">
+      <div class="topbar"><div class="page-title">Resumen</div><div style="font-size:12px;color:#888780" id="today-label"></div></div>
+      <div class="content" id="dashboard-content"><div class="loading"><div class="spinner"></div>Cargando datos...</div></div>
+    </div>
+    <div id="patients" class="section">
+      <div class="topbar">
+        <div class="page-title" id="patients-title">Pacientes</div>
+        <button class="btn btn-primary" onclick="openPatientModal()">+ Nuevo paciente</button>
+      </div>
+      <div class="content" id="patients-content"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+    </div>
+    <div id="calendar" class="section">
+      <div class="topbar"><div class="page-title">Calendario</div><button class="btn btn-primary" onclick="openTurnoModal()">+ Nuevo turno</button></div>
+      <div class="content" id="calendar-content"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+    </div>
+    <div id="payments" class="section">
+      <div class="topbar"><div class="page-title">Pagos</div><button class="btn btn-primary" onclick="openPayModal()">+ Registrar pago</button></div>
+      <div class="content" id="payments-content"><div class="loading"><div class="spinner"></div>Cargando...</div></div>
+    </div>
+    <div id="config" class="section">
+      <div class="topbar"><div class="page-title">Configuración de turnos</div></div>
+      <div class="content" id="config-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCrYJ9mdU2350sUHHKHnWry5wneSAtxURY",
+  authDomain: "avero-bruzzone.firebaseapp.com",
+  projectId: "avero-bruzzone",
+  storageBucket: "avero-bruzzone.firebasestorage.app",
+  messagingSenderId: "331504974147",
+  appId: "1:331504974147:web:13b8d977bfe7d3df32d7f6"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// STATE — datos en memoria, sincronizados desde Firestore
+window._state = { patients:[], turnos:[], pagos:[], historial:[] };
+
+// SYNC STATUS
+function setSyncStatus(ok){
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-status');
+  if(dot){dot.style.background=ok?'#3B6D11':'#A32D2D';}
+  if(lbl){lbl.textContent=ok?'Sincronizado en la nube':'Sin conexión';}
+}
+
+// REALTIME LISTENERS — escuchan cambios en tiempo real
+function setupListeners(){
+  onSnapshot(collection(db,'patients'), snap=>{
+    window._state.patients=snap.docs.map(d=>({id:d.id,...d.data()}));
+    setSyncStatus(true);
+    if(document.getElementById('patients').classList.contains('active'))renderPatients();
+    if(document.getElementById('dashboard').classList.contains('active'))renderDashboard();
+  }, ()=>setSyncStatus(false));
+
+  onSnapshot(collection(db,'turnos'), snap=>{
+    window._state.turnos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    setSyncStatus(true);
+    if(document.getElementById('calendar').classList.contains('active'))renderCalendar();
+    if(document.getElementById('dashboard').classList.contains('active'))renderDashboard();
+  }, ()=>setSyncStatus(false));
+
+  onSnapshot(collection(db,'pagos'), snap=>{
+    window._state.pagos=snap.docs.map(d=>({id:d.id,...d.data()}));
+    setSyncStatus(true);
+    if(document.getElementById('payments').classList.contains('active'))renderPayments();
+    if(document.getElementById('dashboard').classList.contains('active'))renderDashboard();
+  }, ()=>setSyncStatus(false));
+
+  onSnapshot(collection(db,'historial'), snap=>{
+    window._state.historial=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }, ()=>setSyncStatus(false));
+}
+
+// DB HELPERS
+window.DB = {
+  patients(){ return window._state.patients },
+  turnos(){ return window._state.turnos },
+  pagos(){ return window._state.pagos },
+  historial(){ return window._state.historial },
+  async saveDoc(col, obj){
+    await setDoc(doc(db, col, obj.id), obj);
+  },
+  async deleteDoc(col, id){
+    await deleteDoc(doc(db, col, id));
+  },
+};
+
+setupListeners();
+window._fbReady = true;
+initApp();
+</script>
+
+<script>
+// UTILS
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+function initials(n){return(n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()}
+const ACOLORS=['#EAF3DE:#3B6D11','#E6F1FB:#185FA5','#FAEEDA:#854F0B','#EEEDFE:#3C3489','#FCEBEB:#A32D2D','#E1F5EE:#0F6E56'];
+function ac(i){const c=ACOLORS[i%ACOLORS.length].split(':');return{bg:c[0],tc:c[1]}}
+function tod(){return new Date().toISOString().slice(0,10)}
+function fmtDate(d){if(!d)return'';const[y,m,dd]=d.split('-');const mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return`${parseInt(dd)} ${mn[parseInt(m)-1]} ${y}`}
+function fmtMoney(n){return'$'+Number(n||0).toLocaleString('es-AR')}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function openModal(html){document.getElementById('modal-content').innerHTML=html;document.getElementById('modal-overlay').style.display='flex'}
+function closeModal(){document.getElementById('modal-overlay').style.display='none'}
+function closeModalBg(e){if(e.target===document.getElementById('modal-overlay'))closeModal()}
+
+// PATIENTS
+function openPatientModal(id){
+  const ps=window.DB?window.DB.patients():[];const p=id?ps.find(x=>x.id===id):{};
+  openModal(`<div class="modal-title">${id?'Editar paciente':'Nuevo paciente'}</div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Nombre completo *</label><input class="form-control" id="f-name" value="${p.name||''}" placeholder="Ej: Martina Rodríguez"/></div>
+    <div class="form-group"><label class="form-label">Fecha de nacimiento</label><input class="form-control" type="date" id="f-dob" value="${p.dob||''}"/></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Teléfono</label><input class="form-control" id="f-phone" value="${p.phone||''}" placeholder="+598 99 000 000"/></div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="f-email" value="${p.email||''}" placeholder="correo@email.com"/></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Psicóloga asignada</label>
+      <select class="form-control" id="f-psi">
+        <option value="Psic. Mariana Bruzzone" ${(p.psi||'')==='Psic. Mariana Bruzzone'?'selected':''}>Psic. Mariana Bruzzone</option>
+        <option value="Lic. Natalia Avero" ${(p.psi||'')==='Lic. Natalia Avero'?'selected':''}>Lic. Natalia Avero</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Estado</label>
+      <select class="form-control" id="f-status">
+        ${['Activo','Nuevo','Alta','Pausado'].map(s=>`<option ${(p.status||'Activo')===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Diagnóstico / Motivo de consulta</label><input class="form-control" id="f-dx" value="${p.dx||''}" placeholder="Ej: Ansiedad generalizada"/></div>
+  <div class="form-group"><label class="form-label">Notas iniciales</label><textarea class="form-control" id="f-notes">${p.notes||''}</textarea></div>
+  <div class="modal-actions">
+    ${id?`<button class="btn btn-danger btn-sm" onclick="deletePatient('${id}')">Eliminar</button>`:''}
+    <button class="btn" onclick="closeModal()">Cancelar</button>
+    <button class="btn btn-primary" onclick="savePatient('${id||''}')">Guardar</button>
+  </div>`);
+}
+async function savePatient(id){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){alert('El nombre es obligatorio');return}
+  const ps=window.DB.patients();
+  const obj={id:id||uid(),name,dob:document.getElementById('f-dob').value,phone:document.getElementById('f-phone').value.trim(),email:document.getElementById('f-email').value.trim(),psi:document.getElementById('f-psi').value,status:document.getElementById('f-status').value,dx:document.getElementById('f-dx').value.trim(),notes:document.getElementById('f-notes').value.trim(),createdAt:id?(ps.find(x=>x.id===id)||{}).createdAt||tod():tod()};
+  await window.DB.saveDoc('patients', obj);
+  closeModal();toast(id?'Paciente actualizado':'Paciente agregado ✓');
+}
+async function deletePatient(id){
+  if(!confirm('¿Eliminar este paciente?'))return;
+  await window.DB.deleteDoc('patients', id);
+  closeModal();toast('Paciente eliminado');
+}
+let patFilter='todos',patSearch='';
+function renderPatients(){
+  const ps=window.DB.patients();
+  document.getElementById('patients-title').textContent=`Pacientes (${ps.length})`;
+  let list=ps;
+  if(patFilter!=='todos')list=list.filter(p=>p.status===patFilter);
+  if(patSearch)list=list.filter(p=>(p.name||'').toLowerCase().includes(patSearch)||(p.dx||'').toLowerCase().includes(patSearch));
+  const sb=(s)=>{const m={Activo:'badge-green',Nuevo:'badge-blue',Alta:'badge-amber',Pausado:'badge-gray'};return`<span class="badge ${m[s]||'badge-gray'}">${s}</span>`};
+  document.getElementById('patients-content').innerHTML=`
+  <div class="toolbar">
+    <input class="search-input" placeholder="Buscar por nombre o diagnóstico..." oninput="patSearch=this.value.toLowerCase();renderPatients()" value="${patSearch}"/>
+    ${['todos','Activo','Nuevo','Alta','Pausado'].map(f=>`<button class="filter-btn ${patFilter===f?'active':''}" onclick="patFilter='${f}';renderPatients()">${f==='todos'?'Todos':f}</button>`).join('')}
+  </div>
+  ${list.length===0?`<div class="empty-state"><p>No hay pacientes</p></div>`:
+  `<table class="data-table"><thead><tr><th>Paciente</th><th>Teléfono</th><th>Diagnóstico</th><th>Psicóloga</th><th>Estado</th><th></th></tr></thead><tbody>
+  ${list.map((p,i)=>{const c=ac(i);return`<tr style="cursor:pointer" onclick="openPatientDetail('${p.id}')">
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="background:${c.bg};color:${c.tc}">${initials(p.name)}</div>${p.name}</div></td>
+    <td>${p.phone||'—'}</td><td>${p.dx||'—'}</td>
+    <td style="font-size:12px;color:#888780">${p.psi||'—'}</td>
+    <td>${sb(p.status||'Activo')}</td>
+    <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="openPatientModal('${p.id}')">Editar</button></td>
+  </tr>`}).join('')}</tbody></table>`}`;
+}
+function openPatientDetail(id){
+  const p=window.DB.patients().find(x=>x.id===id);if(!p)return;
+  const ps=window.DB.patients();const idx=ps.indexOf(p);const c=ac(idx);
+  const turnos=window.DB.turnos().filter(t=>t.patientId===id).sort((a,b)=>b.date.localeCompare(a.date));
+  const pagos=window.DB.pagos().filter(pg=>pg.patientId===id).sort((a,b)=>b.date.localeCompare(a.date));
+  const hist=window.DB.historial().filter(h=>h.patientId===id).sort((a,b)=>b.date.localeCompare(a.date));
+  const totalPagado=pagos.filter(x=>x.status==='cobrado').reduce((s,x)=>s+Number(x.amount),0);
+  openModal(`
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="avatar" style="width:48px;height:48px;font-size:16px;background:${c.bg};color:${c.tc}">${initials(p.name)}</div>
+      <div><div style="font-size:17px;font-weight:700">${p.name}</div><div style="font-size:12px;color:#888780">${p.dx||'Sin diagnóstico'} · ${p.psi||''}</div></div>
+    </div>
+    <button class="btn btn-sm" onclick="openPatientModal('${id}')">Editar</button>
+  </div>
+  <div class="detail-tabs">
+    <button class="detail-tab active" onclick="switchTab(this,'tab-info')">Info</button>
+    <button class="detail-tab" onclick="switchTab(this,'tab-turnos')">Turnos (${turnos.length})</button>
+    <button class="detail-tab" onclick="switchTab(this,'tab-pagos')">Pagos (${pagos.length})</button>
+    <button class="detail-tab" onclick="switchTab(this,'tab-hist')">Historial (${hist.length})</button>
+  </div>
+  <div id="tab-info" class="detail-tab-content active">
+    <div class="info-grid">
+      <div class="info-item"><label>Teléfono</label><p>${p.phone||'—'}</p></div>
+      <div class="info-item"><label>Email</label><p>${p.email||'—'}</p></div>
+      <div class="info-item"><label>Nacimiento</label><p>${p.dob?fmtDate(p.dob):'—'}</p></div>
+      <div class="info-item"><label>Paciente desde</label><p>${fmtDate(p.createdAt)}</p></div>
+      <div class="info-item"><label>Estado</label><p>${p.status||'Activo'}</p></div>
+      <div class="info-item"><label>Total cobrado</label><p style="color:#3B6D11;font-weight:700">${fmtMoney(totalPagado)}</p></div>
+    </div>
+    ${p.notes?`<div style="margin-top:1rem"><label class="form-label">Notas</label><p style="font-size:13px;color:#5f5e5a;line-height:1.5">${p.notes}</p></div>`:''}
+  </div>
+  <div id="tab-turnos" class="detail-tab-content">
+    ${turnos.length===0?'<div class="empty-state"><p>Sin turnos registrados</p></div>':
+      turnos.map(t=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ede6">
+        <div><div style="font-size:13px;font-weight:600">${fmtDate(t.date)} ${t.time||''}</div><div style="font-size:12px;color:#888780">${t.type||'Sesión'} · ${t.psi||''}</div></div>
+        <span class="badge ${t.status==='Confirmado'?'badge-green':t.status==='Cancelado'?'badge-red':t.status==='Realizado'?'badge-gray':'badge-amber'}">${t.status||'Pendiente'}</span>
+      </div>`).join('')}
+  </div>
+  <div id="tab-pagos" class="detail-tab-content">
+    ${pagos.length===0?'<div class="empty-state"><p>Sin pagos registrados</p></div>':
+      pagos.map(pg=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ede6">
+        <div><div style="font-size:13px;font-weight:600">${fmtDate(pg.date)}</div><div style="font-size:12px;color:#888780">${pg.concept||'Sesión'}</div></div>
+        <div style="text-align:right"><div class="${pg.status==='cobrado'?'amount-pos':'amount-neg'}">${fmtMoney(pg.amount)}</div><span class="badge ${pg.status==='cobrado'?'badge-green':'badge-red'}" style="display:block;margin-top:2px">${pg.status==='cobrado'?'Cobrado':'Pendiente'}</span></div>
+      </div>`).join('')}
+  </div>
+  <div id="tab-hist" class="detail-tab-content">
+    <button class="btn btn-primary btn-sm" style="margin-bottom:1rem" onclick="openHistModal('${id}')">+ Agregar nota</button>
+    ${hist.length===0?'<div class="empty-state"><p>Sin notas en el historial</p></div>':
+      hist.map(h=>`<div class="historial-entry"><div class="historial-date">${fmtDate(h.date)} — ${h.psi||''}</div><div class="historial-text">${h.text}</div></div>`).join('')}
+  </div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal()">Cerrar</button></div>`);
+}
+function switchTab(el,tabId){
+  el.closest('.modal').querySelectorAll('.detail-tab').forEach(t=>t.classList.remove('active'));
+  el.closest('.modal').querySelectorAll('.detail-tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');document.getElementById(tabId).classList.add('active');
+}
+function openHistModal(pid){
+  openModal(`<div class="modal-title">Nueva nota de historial</div>
+  <div class="form-group"><label class="form-label">Fecha</label><input class="form-control" type="date" id="h-date" value="${tod()}"/></div>
+  <div class="form-group"><label class="form-label">Psicóloga</label>
+    <select class="form-control" id="h-psi"><option>Psic. Mariana Bruzzone</option><option>Lic. Natalia Avero</option></select>
+  </div>
+  <div class="form-group"><label class="form-label">Nota de sesión *</label><textarea class="form-control" id="h-text" style="min-height:120px" placeholder="Observaciones, avances, temas tratados..."></textarea></div>
+  <div class="modal-actions">
+    <button class="btn" onclick="openPatientDetail('${pid}')">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveHist('${pid}')">Guardar nota</button>
+  </div>`);
+}
+async function saveHist(pid){
+  const text=document.getElementById('h-text').value.trim();
+  if(!text){alert('Escribí la nota');return}
+  const obj={id:uid(),patientId:pid,date:document.getElementById('h-date').value,psi:document.getElementById('h-psi').value,text};
+  await window.DB.saveDoc('historial', obj);
+  toast('Nota guardada ✓');openPatientDetail(pid);
+}
+
+// CALENDAR
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+function renderCalendar(){
+  const turnos=window.DB.turnos();const first=new Date(calYear,calMonth,1).getDay();
+  const last=new Date(calYear,calMonth+1,0).getDate();const prevLast=new Date(calYear,calMonth,0).getDate();
+  const todayStr=tod();let cells='';
+  for(let i=0;i<first;i++)cells+=`<div class="cal-day other-month"><div class="cal-num">${prevLast-first+1+i}</div></div>`;
+  for(let d=1;d<=last;d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=ds===todayStr;
+    const dt=turnos.filter(t=>t.date===ds).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    cells+=`<div class="cal-day ${isToday?'today':''}" onclick="openTurnoModal('',null,'${ds}')"><div class="cal-num">${d}</div>${dt.map(t=>`<div class="cal-event ${t.psi&&t.psi.includes('Natalia')?'psi2':''}" onclick="event.stopPropagation();openTurnoDetail('${t.id}')">${t.time||''} ${t.patientName||''}</div>`).join('')}</div>`;
+  }
+  const rem=(7-((first+last)%7))%7;
+  for(let i=1;i<=rem;i++)cells+=`<div class="cal-day other-month"><div class="cal-num">${i}</div></div>`;
+  document.getElementById('calendar-content').innerHTML=`
+  <div class="cal-nav">
+    <button onclick="calMonth--;if(calMonth<0){calMonth=11;calYear--}renderCalendar()">&#8249;</button>
+    <span class="cal-month-label">${MONTHS[calMonth]} ${calYear}</span>
+    <button onclick="calMonth++;if(calMonth>11){calMonth=0;calYear++}renderCalendar()">&#8250;</button>
+  </div>
+  <div class="cal-grid">${DAYS.map(d=>`<div class="cal-day-label">${d}</div>`).join('')}${cells}</div>
+  <div style="display:flex;gap:14px;margin-top:12px;font-size:12px;color:#888780">
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:10px;background:#EAF3DE;border-radius:2px;display:inline-block"></span>Psic. Mariana</span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:12px;height:10px;background:#E6F1FB;border-radius:2px;display:inline-block"></span>Lic. Natalia</span>
+  </div>`;
+}
+function openTurnoModal(id,patientId,preDate){
+  const ts=window.DB.turnos();const t=id?ts.find(x=>x.id===id):{};const ps=window.DB.patients();
+  openModal(`<div class="modal-title">${id?'Editar turno':'Nuevo turno'}</div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Fecha *</label><input class="form-control" type="date" id="t-date" value="${t.date||preDate||tod()}"/></div>
+    <div class="form-group"><label class="form-label">Hora *</label><input class="form-control" type="time" id="t-time" value="${t.time||'09:00'}"/></div>
+  </div>
+  <div class="form-group"><label class="form-label">Paciente *</label>
+    <select class="form-control" id="t-patient">
+      <option value="">— Seleccionar paciente —</option>
+      ${ps.map(p=>`<option value="${p.id}" ${t.patientId===p.id?'selected':''}>${p.name}</option>`).join('')}
+    </select>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Tipo de sesión</label>
+      <select class="form-control" id="t-type">${['Terapia individual','Terapia de pareja','Evaluación inicial','Seguimiento','Otro'].map(x=>`<option ${t.type===x?'selected':''}>${x}</option>`).join('')}</select>
+    </div>
+    <div class="form-group"><label class="form-label">Psicóloga</label>
+      <select class="form-control" id="t-psi">
+        <option ${(t.psi||'')==='Psic. Mariana Bruzzone'?'selected':''}>Psic. Mariana Bruzzone</option>
+        <option ${(t.psi||'')==='Lic. Natalia Avero'?'selected':''}>Lic. Natalia Avero</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Estado</label>
+    <select class="form-control" id="t-status">${['Confirmado','Pendiente','Cancelado','Realizado'].map(x=>`<option ${(t.status||'Confirmado')===x?'selected':''}>${x}</option>`).join('')}</select>
+  </div>
+  <div class="form-group"><label class="form-label">Notas</label><textarea class="form-control" id="t-notes">${t.notes||''}</textarea></div>
+  <div class="modal-actions">
+    ${id?`<button class="btn btn-danger btn-sm" onclick="deleteTurno('${id}')">Eliminar</button>`:''}
+    <button class="btn" onclick="closeModal()">Cancelar</button>
+    <button class="btn btn-primary" onclick="saveTurno('${id||''}')">Guardar</button>
+  </div>`);
+  if(patientId&&document.getElementById('t-patient'))document.getElementById('t-patient').value=patientId;
+}
+async function saveTurno(id){
+  const patientId=document.getElementById('t-patient').value;const date=document.getElementById('t-date').value;
+  if(!patientId||!date){alert('Paciente y fecha son obligatorios');return}
+  const ps=window.DB.patients();const pat=ps.find(x=>x.id===patientId);
+  const obj={id:id||uid(),patientId,patientName:pat?pat.name:'',date,time:document.getElementById('t-time').value,type:document.getElementById('t-type').value,psi:document.getElementById('t-psi').value,status:document.getElementById('t-status').value,notes:document.getElementById('t-notes').value.trim()};
+  await window.DB.saveDoc('turnos', obj);
+  closeModal();toast(id?'Turno actualizado':'Turno agendado ✓');
+}
+async function deleteTurno(id){
+  if(!confirm('¿Eliminar este turno?'))return;
+  await window.DB.deleteDoc('turnos', id);
+  closeModal();toast('Turno eliminado');
+}
+function openTurnoDetail(id){
+  const t=window.DB.turnos().find(x=>x.id===id);if(!t)return;
+  openModal(`<div class="modal-title">Detalle del turno</div>
+  <div class="info-grid" style="margin-bottom:1rem">
+    <div class="info-item"><label>Paciente</label><p>${t.patientName}</p></div>
+    <div class="info-item"><label>Fecha y hora</label><p>${fmtDate(t.date)} ${t.time||''}</p></div>
+    <div class="info-item"><label>Tipo</label><p>${t.type||'—'}</p></div>
+    <div class="info-item"><label>Psicóloga</label><p>${t.psi||'—'}</p></div>
+    <div class="info-item"><label>Estado</label><p>${t.status||'—'}</p></div>
+  </div>
+  ${t.notes?`<div class="form-group"><label class="form-label">Notas</label><p style="font-size:13px;color:#5f5e5a">${t.notes}</p></div>`:''}
+  <div class="modal-actions">
+    <button class="btn btn-danger btn-sm" onclick="deleteTurno('${id}')">Eliminar</button>
+    <button class="btn" onclick="closeModal()">Cerrar</button>
+    <button class="btn btn-primary" onclick="openTurnoModal('${id}')">Editar</button>
+  </div>`);
+}
+
+// PAYMENTS
+let payFilter='todos';
+function renderPayments(){
+  const pagos=window.DB.pagos().sort((a,b)=>b.date.localeCompare(a.date));
+  let list=pagos;if(payFilter!=='todos')list=list.filter(p=>p.status===payFilter);
+  const totalCob=pagos.filter(x=>x.status==='cobrado').reduce((s,x)=>s+Number(x.amount),0);
+  const totalPend=pagos.filter(x=>x.status==='pendiente').reduce((s,x)=>s+Number(x.amount),0);
+  document.getElementById('payments-content').innerHTML=`
+  <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin-bottom:1rem">
+    <div class="metric"><div class="metric-label">Cobrado total</div><div class="metric-value" style="color:#3B6D11;font-size:18px">${fmtMoney(totalCob)}</div></div>
+    <div class="metric"><div class="metric-label">Pendiente</div><div class="metric-value" style="color:#A32D2D;font-size:18px">${fmtMoney(totalPend)}</div></div>
+    <div class="metric"><div class="metric-label">Registros</div><div class="metric-value">${pagos.length}</div></div>
+  </div>
+  <div class="toolbar">${['todos','cobrado','pendiente'].map(f=>`<button class="filter-btn ${payFilter===f?'active':''}" onclick="payFilter='${f}';renderPayments()">${f.charAt(0).toUpperCase()+f.slice(1)}</button>`).join('')}</div>
+  ${list.length===0?`<div class="empty-state"><p>No hay pagos registrados</p></div>`:
+  `<table class="data-table"><thead><tr><th>Paciente</th><th>Fecha</th><th>Concepto</th><th>Método</th><th>Monto</th><th>Estado</th><th></th></tr></thead><tbody>
+  ${list.map(p=>`<tr>
+    <td>${p.patientName||'—'}</td><td>${fmtDate(p.date)}</td><td>${p.concept||'Sesión'}</td><td>${p.method||'—'}</td>
+    <td class="${p.status==='cobrado'?'amount-pos':'amount-neg'}">${fmtMoney(p.amount)}</td>
+    <td><span class="badge ${p.status==='cobrado'?'badge-green':'badge-red'}">${p.status==='cobrado'?'Cobrado':'Pendiente'}</span></td>
+    <td><button class="btn btn-sm" onclick="openPayModal('${p.id}')">Editar</button></td>
+  </tr>`).join('')}</tbody></table>`}`;
+}
+function openPayModal(id){
+  const pagos=window.DB.pagos();const p=id?pagos.find(x=>x.id===id):{};const ps=window.DB.patients();
+  openModal(`<div class="modal-title">${id?'Editar pago':'Registrar pago'}</div>
+  <div class="form-group"><label class="form-label">Paciente *</label>
+    <select class="form-control" id="p-patient">
+      <option value="">— Seleccionar —</option>
+      ${ps.map(pt=>`<option value="${pt.id}" ${p.patientId===pt.id?'selected':''}>${pt.name}</option>`).join('')}
+    </select>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Fecha *</label><input class="form-control" type="date" id="p-date" value="${p.date||tod()}"/></div>
+    <div class="form-group"><label class="form-label">Monto *</label><input class="form-control" type="number" id="p-amount" value="${p.amount||''}" placeholder="Ej: 6500"/></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label class="form-label">Concepto</label><input class="form-control" id="p-concept" value="${p.concept||'Sesión'}" placeholder="Ej: Sesión, Evaluación..."/></div>
+    <div class="form-group"><label class="form-label">Estado</label>
+      <select class="form-control" id="p-status">
+        <option value="cobrado" ${(p.status||'cobrado')==='cobrado'?'selected':''}>Cobrado</option>
+        <option value="pendiente" ${p.status==='pendiente'?'selected':''}>Pendiente</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group"><label class="form-label">Método de pago</label>
+    <select class="form-control" id="p-method">${['Efectivo','Transferencia','Tarjeta','Otro'].map(m=>`<option ${p.method===m?'selected':''}>${m}</option>`).join('')}</select>
+  </div>
+  <div class="modal-actions">
+    ${id?`<button class="btn btn-danger btn-sm" onclick="deletePago('${id}')">Eliminar</button>`:''}
+    <button class="btn" onclick="closeModal()">Cancelar</button>
+    <button class="btn btn-primary" onclick="savePago('${id||''}')">Guardar</button>
+  </div>`);
+}
+async function savePago(id){
+  const patientId=document.getElementById('p-patient').value;const amount=document.getElementById('p-amount').value;
+  if(!patientId||!amount){alert('Paciente y monto son obligatorios');return}
+  const ps=window.DB.patients();const pat=ps.find(x=>x.id===patientId);const pagos=window.DB.pagos();
+  const obj={id:id||uid(),patientId,patientName:pat?pat.name:'',date:document.getElementById('p-date').value,amount:Number(amount),concept:document.getElementById('p-concept').value.trim(),status:document.getElementById('p-status').value,method:document.getElementById('p-method').value};
+  await window.DB.saveDoc('pagos', obj);
+  closeModal();toast(id?'Pago actualizado':'Pago registrado ✓');
+}
+async function deletePago(id){
+  if(!confirm('¿Eliminar este registro?'))return;
+  await window.DB.deleteDoc('pagos', id);
+  closeModal();toast('Registro eliminado');
+}
+
+// DASHBOARD
+function renderDashboard(){
+  const todayStr=tod();const ps=window.DB.patients();const ts=window.DB.turnos();const pagos=window.DB.pagos();
+  const todayTurnos=ts.filter(t=>t.date===todayStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const activos=ps.filter(p=>p.status==='Activo').length;
+  const mesActual=todayStr.slice(0,7);
+  const cobradoMes=pagos.filter(p=>p.date&&p.date.slice(0,7)===mesActual&&p.status==='cobrado').reduce((s,x)=>s+Number(x.amount),0);
+  const pendiente=pagos.filter(p=>p.status==='pendiente').reduce((s,x)=>s+Number(x.amount),0);
+  const sb=(s)=>{const m={Confirmado:'badge-green',Pendiente:'badge-amber',Cancelado:'badge-red',Realizado:'badge-gray'};return`<span class="badge ${m[s]||'badge-amber'}">${s||'Pendiente'}</span>`};
+  const recentPagos=[...pagos].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
+  document.getElementById('dashboard-content').innerHTML=`
+  <div class="metrics">
+    <div class="metric"><div class="metric-label">Pacientes activos</div><div class="metric-value">${activos}</div><div class="metric-sub">${ps.length} en total</div></div>
+    <div class="metric"><div class="metric-label">Sesiones hoy</div><div class="metric-value">${todayTurnos.length}</div><div class="metric-sub">${todayTurnos.filter(t=>!t.status||t.status==='Pendiente').length} pendientes</div></div>
+    <div class="metric"><div class="metric-label">Cobrado este mes</div><div class="metric-value" style="font-size:17px">${fmtMoney(cobradoMes)}</div></div>
+    <div class="metric"><div class="metric-label">Pendiente de cobro</div><div class="metric-value" style="font-size:17px;color:#A32D2D">${fmtMoney(pendiente)}</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">Sesiones de hoy</div>
+      ${todayTurnos.length===0?`<div style="text-align:center;padding:1.5rem 0;color:#888780;font-size:13px">No hay turnos para hoy</div>`:
+        todayTurnos.map(t=>{const pi=ps.findIndex(p=>p.id===t.patientId);const c=ac(pi>=0?pi:0);return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0ede6">
+          <div style="font-size:12px;color:#888780;min-width:44px">${t.time||'—'}</div>
+          <div class="avatar" style="background:${c.bg};color:${c.tc}">${initials(t.patientName||'?')}</div>
+          <div style="flex:1"><div style="font-size:13px;font-weight:600">${t.patientName||'—'}</div><div style="font-size:11px;color:#888780">${t.type||'Sesión'}</div></div>
+          ${sb(t.status)}
+        </div>`;}).join('')}
+    </div>
+    <div class="card"><div class="card-title">Últimos pagos</div>
+      ${recentPagos.length===0?`<div style="text-align:center;padding:1.5rem 0;color:#888780;font-size:13px">Sin pagos registrados</div>`:
+        recentPagos.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0ede6">
+          <div><div style="font-size:13px;font-weight:600">${p.patientName||'—'}</div><div style="font-size:11px;color:#888780">${fmtDate(p.date)}</div></div>
+          <div class="${p.status==='cobrado'?'amount-pos':'amount-neg'}">${fmtMoney(p.amount)}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// BOOKING LINK
+function showBookingLink(){
+  const url='https://poetic-arithmetic-a877d1.netlify.app/?booking=1';
+  openModal(`<div class="modal-title">Link de autoagendamiento para pacientes</div>
+  <p style="font-size:13px;color:#5f5e5a;margin-bottom:1rem">Compartí este link con tus pacientes. Pueden completar sus datos y elegir un horario. El turno queda visible en el calendario automáticamente.</p>
+  <label class="form-label">Link para compartir</label>
+  <div class="link-box">
+    <span class="link-url">${url}</span>
+    <button class="btn btn-sm" onclick="copyLink('${url}')">Copiar</button>
+  </div>
+  <div style="margin-top:1rem">
+    <label class="form-label">Compartir por WhatsApp</label>
+    <button onclick="shareWhatsApp('${url}')" style="display:flex;align-items:center;gap:10px;background:#25D366;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;justify-content:center;margin-top:8px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Enviar por WhatsApp
+    </button>
+  </div>
+  <div class="modal-actions">
+    <button class="btn" onclick="window.open('${url}','_blank')">Vista previa ↗</button>
+    <button class="btn" onclick="closeModal()">Cerrar</button>
+  </div>`);
+}
+function copyLink(url){navigator.clipboard.writeText(url).then(()=>toast('Link copiado ✓')).catch(()=>toast('Copiá el link manualmente'))}
+function shareWhatsApp(url){const msg=encodeURIComponent(`Hola! Te compartimos el link para que puedas agendar tu turno en el consultorio Bruzzone & Avero:\n\n${url}\n\nCompletá tus datos y elegí el horario que mejor te quede. ¡Cualquier consulta estamos a disposición!`);window.open('https://wa.me/?text='+msg,'_blank')}
+
+// CONFIG
+function getConfig(){try{return JSON.parse(localStorage.getItem('ba_config'))||{dias:[1,2,3,4,5],horaInicio:'09:00',horaFin:'18:00',duracion:50,descanso:10}}catch{return{dias:[1,2,3,4,5],horaInicio:'09:00',horaFin:'18:00',duracion:50,descanso:10}}}
+function getSlots(){
+  const cfg=getConfig();const slots=[];
+  const[sh,sm]=cfg.horaInicio.split(':').map(Number);const[eh,em]=cfg.horaFin.split(':').map(Number);
+  let cur=sh*60+sm;const end=eh*60+em;const step=cfg.duracion+cfg.descanso;
+  while(cur+cfg.duracion<=end){slots.push(`${String(Math.floor(cur/60)).padStart(2,'0')}:${String(cur%60).padStart(2,'0')}`);cur+=step;}
+  return slots;
+}
+function saveConfig(){
+  const dias=[];document.querySelectorAll('.dia-check:checked').forEach(cb=>dias.push(Number(cb.value)));
+  if(dias.length===0){alert('Seleccioná al menos un día');return}
+  const cfg={dias,horaInicio:document.getElementById('cfg-inicio').value,horaFin:document.getElementById('cfg-fin').value,duracion:Number(document.getElementById('cfg-dur').value),descanso:Number(document.getElementById('cfg-desc').value)};
+  localStorage.setItem('ba_config',JSON.stringify(cfg));toast('Configuración guardada ✓');renderConfig();
+}
+function renderConfig(){
+  const cfg=getConfig();const slots=getSlots();
+  const diasNombres=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  document.getElementById('config-content').innerHTML=`<div style="max-width:560px">
+  <div class="card" style="margin-bottom:1rem"><div class="card-title">Días de atención</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${[1,2,3,4,5,6,0].map(d=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;background:${cfg.dias.includes(d)?'#EAF3DE':'#f5f4f0'};border:1px solid ${cfg.dias.includes(d)?'#97C459':'#dddbd2'};border-radius:8px;padding:7px 12px;color:${cfg.dias.includes(d)?'#3B6D11':'#5f5e5a'}">
+        <input type="checkbox" class="dia-check" value="${d}" ${cfg.dias.includes(d)?'checked':''} style="accent-color:#3B6D11"/>${diasNombres[d]}</label>`).join('')}
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem"><div class="card-title">Horario de atención</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Hora de inicio</label><input class="form-control" type="time" id="cfg-inicio" value="${cfg.horaInicio}"/></div>
+      <div class="form-group"><label class="form-label">Hora de fin</label><input class="form-control" type="time" id="cfg-fin" value="${cfg.horaFin}"/></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1rem"><div class="card-title">Duración de turnos</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Duración de sesión (min)</label><input class="form-control" type="number" id="cfg-dur" value="${cfg.duracion}" min="15" max="120"/></div>
+      <div class="form-group"><label class="form-label">Descanso entre turnos (min)</label><input class="form-control" type="number" id="cfg-desc" value="${cfg.descanso}" min="0" max="60"/></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:1.5rem"><div class="card-title">Horarios disponibles para pacientes</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${slots.length===0?'<span style="font-size:13px;color:#888780">Ninguno — revisá la configuración</span>':
+        slots.map(s=>`<span style="background:#EAF3DE;color:#3B6D11;border-radius:6px;padding:4px 10px;font-size:13px;font-weight:600">${s}</span>`).join('')}
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="saveConfig()" style="width:100%;padding:10px">Guardar configuración</button>
+  </div>`;
+}
+
+// BOOKING PAGE
+var _bSlot='';
+function selectBookingSlot(s){_bSlot=s;document.querySelectorAll('.time-slot').forEach(b=>b.classList.toggle('selected',b.dataset.slot===s))}
+async function submitBooking(){
+  const name=document.getElementById('b-name').value.trim();
+  const phone=document.getElementById('b-phone').value.trim();
+  const date=document.getElementById('b-date').value;
+  if(!name||!phone||!date||!_bSlot){alert('Completá todos los campos obligatorios y elegí un horario');return}
+  const psi=document.getElementById('b-psi').value;
+  const reason=document.getElementById('b-reason').value.trim();
+  const btn=document.querySelector('#booking-inner .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='Enviando...';}
+  try{
+    // Save patient if new
+    const ps=window.DB.patients();
+    let pat=ps.find(p=>(p.name||'').toLowerCase()===name.toLowerCase());
+    if(!pat){
+      pat={id:uid(),name,phone,psi:psi==='Sin preferencia'?'':psi,status:'Nuevo',dx:reason,createdAt:tod(),notes:'Solicitó turno online'};
+      await window.DB.saveDoc('patients', pat);
+    }
+    // Save turno
+    const turno={id:uid(),patientId:pat.id,patientName:name,date,time:_bSlot,type:'Terapia individual',psi:psi==='Sin preferencia'?'':psi,status:'Pendiente',notes:reason?`Motivo: ${reason}`:''};
+    await window.DB.saveDoc('turnos', turno);
+    // Show success
+    document.getElementById('booking-inner').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:2rem">
+      <div style="width:44px;height:44px;border-radius:12px;background:#3B6D11;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <span style="font-size:12px;font-weight:700;color:#fff;line-height:1.2">MB</span>
+        <span style="font-size:9px;font-weight:600;color:#c0dd97;line-height:1.2">NA</span>
+      </div>
+      <div><div style="font-size:16px;font-weight:700">Bruzzone & Avero</div><div style="font-size:12px;color:#888780">Consultorio de psicología</div></div>
+    </div>
+    <div style="text-align:center;padding:2rem 0">
+      <div style="width:64px;height:64px;background:#EAF3DE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:28px;color:#3B6D11">&#10003;</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:0.5rem">¡Solicitud enviada!</div>
+      <p style="font-size:14px;color:#5f5e5a;line-height:1.6;margin-bottom:1.5rem">Tu solicitud fue recibida. El consultorio te confirmará la cita a la brevedad.</p>
+      <div style="background:#EAF3DE;border-radius:10px;padding:1rem;text-align:left;font-size:13px;margin-bottom:1.5rem">
+        <div style="margin-bottom:4px"><strong>Nombre:</strong> ${name}</div>
+        <div style="margin-bottom:4px"><strong>Fecha:</strong> ${fmtDate(date)}</div>
+        <div><strong>Horario solicitado:</strong> ${_bSlot}</div>
+      </div>
+      <button class="btn" onclick="_bSlot='';renderBookingPage()">Solicitar otro turno</button>
+    </div>`;
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Confirmar solicitud de turno';}
+    alert('Error al enviar. Verificá tu conexión e intentá de nuevo.');
+  }
+}
+function updateBookingSlots(){
+  const dateInput=document.getElementById('b-date');const wrap=document.getElementById('b-slots-wrap');
+  if(!dateInput||!wrap)return;const val=dateInput.value;
+  if(!val){wrap.innerHTML='<p style="font-size:12px;color:#888780">Seleccioná una fecha para ver los horarios.</p>';return}
+  const cfg=getConfig();const dow=new Date(val+'T12:00:00').getDay();
+  if(!cfg.dias.includes(dow)){wrap.innerHTML='<p style="font-size:13px;color:#A32D2D;font-weight:600">El consultorio no atiende ese día. Por favor elegí otra fecha.</p>';_bSlot='';return}
+  const slots=getSlots();
+  if(slots.length===0){wrap.innerHTML='<p style="font-size:12px;color:#888780">No hay horarios configurados aún.</p>';return}
+  wrap.innerHTML=`<div class="time-slots">${slots.map(s=>`<button class="time-slot${_bSlot===s?' selected':''}" data-slot="${s}" onclick="selectBookingSlot('${s}')">${s}</button>`).join('')}</div>`;
+}
+function renderBookingPage(){
+  document.getElementById('main-app').style.display='none';
+  document.getElementById('booking-page').style.display='block';
+  _bSlot='';
+  document.getElementById('booking-inner').innerHTML=`
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:2rem">
+    <div style="width:44px;height:44px;border-radius:12px;background:#3B6D11;display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <span style="font-size:12px;font-weight:700;color:#fff;line-height:1.2">MB</span>
+      <span style="font-size:9px;font-weight:600;color:#c0dd97;line-height:1.2">NA</span>
+    </div>
+    <div><div style="font-size:16px;font-weight:700">Bruzzone & Avero</div><div style="font-size:12px;color:#888780">Consultorio de psicología</div></div>
+  </div>
+  <div style="font-size:20px;font-weight:700;margin-bottom:0.4rem">Solicitá tu turno</div>
+  <div style="font-size:14px;color:#888780;margin-bottom:1.5rem">Completá tus datos y elegí un horario disponible.</div>
+  <div class="form-group"><label class="form-label">Tu nombre completo *</label><input class="form-control" id="b-name" placeholder="Ej: Sofía González"/></div>
+  <div class="form-group"><label class="form-label">Teléfono *</label><input class="form-control" id="b-phone" placeholder="+598 99 000 000"/></div>
+  <div class="form-group"><label class="form-label">Fecha deseada *</label><input class="form-control" type="date" id="b-date" value="${tod()}" min="${tod()}"/></div>
+  <div class="form-group"><label class="form-label">Psicóloga preferida</label>
+    <select class="form-control" id="b-psi"><option>Sin preferencia</option><option>Psic. Mariana Bruzzone</option><option>Lic. Natalia Avero</option></select>
+  </div>
+  <div class="form-group"><label class="form-label">Motivo de consulta (opcional)</label><textarea class="form-control" id="b-reason" placeholder="Podés contarnos brevemente..."></textarea></div>
+  <div class="form-group"><label class="form-label">Elegí un horario *</label><div id="b-slots-wrap"><p style="font-size:12px;color:#888780">Seleccioná una fecha para ver los horarios disponibles.</p></div></div>
+  <button class="btn btn-primary" style="width:100%;margin-top:1rem;padding:12px" onclick="submitBooking()">Confirmar solicitud de turno</button>`;
+  document.getElementById('b-date').addEventListener('change',updateBookingSlots);
+  updateBookingSlots();
+}
+
+// NAV
+function showSection(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(el)el.classList.add('active');
+  if(id==='dashboard')renderDashboard();
+  if(id==='patients')renderPatients();
+  if(id==='calendar')renderCalendar();
+  if(id==='payments')renderPayments();
+  if(id==='config')renderConfig();
+}
+
+function initApp(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('booking')==='1'){
+    renderBookingPage();
+  }else{
+    const d=new Date();
+    const dn=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const mn=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const lbl=document.getElementById('today-label');
+    if(lbl)lbl.textContent=`${dn[d.getDay()]} ${d.getDate()} de ${mn[d.getMonth()]}, ${d.getFullYear()}`;
+  }
+}
+</script>
+</body>
+</html>
